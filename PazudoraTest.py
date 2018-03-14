@@ -4,6 +4,10 @@ import os
 import random
 
 
+#TO DO: Add Moving Animation
+#Connect to monkeyrunner somehow
+
+
 class Board:
 
     def __init__(self, dimension_of_board, tile_size, margin_size, board_pattern):
@@ -27,8 +31,8 @@ class Board:
 
         self.tiles = [(x, y) for y in range(self.rows) for x in range(self.columns)]
         self.tilespos = {
-        (x, y): (x * (tile_size + margin_size) + margin_size, y * (tile_size + margin_size) + margin_size)
-        for y in range(self.rows) for x in range(self.columns)}
+            (x, y): (x * (tile_size + margin_size) + margin_size, y * (tile_size + margin_size) + margin_size)
+            for y in range(self.rows) for x in range(self.columns)}
 
         self.orb_pattern = []
         for i in range(self.size):
@@ -46,18 +50,35 @@ class Board:
 
     # "Blank" - should be the orb you're holding
     def get_start_orb(self):
+        # Currently always sets the start orb as the bottom right tile
         return self.tiles[-1]
 
     # Constantly update the current orb that is being held
-    def set_start_orb(self,pos):
+    def set_start_orb(self, pos):
         self.tiles[-1] = pos
-        # opentile = property(get_start_orb,set_start_orb)
 
-    def swap(self):
-        pass
+    opentile = property(get_start_orb, set_start_orb)
+
+    def swap(self, tile):
+        index = self.tiles.index(tile)
+        self.tiles[index], self.opentile = self.opentile, self.tiles[index]
+
+    def in_grid(self, tile):
+        return tile[1] >= 0 and tile[1] < self.rows and tile[0] >= 0 and tile[0] <self.columns
+
+    def adjacent(self):
+        x,y = self.opentile
+        return (x-1,y),(x+1,y),(x,y-1),(x,y+1)
 
     def update(self, dt):
-        pass
+        mouse = pygame.mouse.get_pressed()
+        mpos = pygame.mouse.get_pos()
+
+        if mouse[0]:
+            tile = mpos[0] // (self.tile_size+self.margin_size), mpos[1] // (self.tile_size+self.margin_size)
+            if self.in_grid(tile):
+                if (tile in self.adjacent()):
+                    self.swap(tile)
 
     def draw(self, screen):
 
@@ -66,14 +87,14 @@ class Board:
             screen.blit(self.orb_pattern[i], (x - 8, y - 8))
 
 
-
 def generate_random_board():
     orbs = ['r', 'g', 'b', 'l', 'd', 'h']
     board = [random.choice(orbs) for i in range(30)]
     return board
 
 
-x = generate_random_board()
+x = ['g', 'r', 'l', 'g', 'r', 'h', 'g', 'r', 'r', 'l', 'l', 'r', 'd', 'g', 'g', 'h', 'r', 'b', 'b', 'd', 'r', 'b', 'r',
+     'g', 'r', 'd', 'r', 'b', 'g', 'l']
 
 
 def main():
