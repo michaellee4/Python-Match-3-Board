@@ -5,13 +5,16 @@ import random
 
 
 #TO DO: Add Moving Animation
-#Connect to monkeyrunner somehow
+#Lift start orb
+#Connect to monkeyrunner somehow (Might be really hard)
+
 
 
 class Board:
 
     def __init__(self, dimension_of_board, tile_size, margin_size, board_pattern):
         self.board_pattern = board_pattern
+        self.moves = []
 
         self.tile_size = tile_size
         self.margin_size = margin_size
@@ -30,23 +33,15 @@ class Board:
                        '*': pygame.image.load('Jammer.png')}
 
         self.tiles = [(x, y) for y in range(self.rows) for x in range(self.columns)]
-        self.tilespos = {
-            (x, y): (x * (tile_size + margin_size) + margin_size, y * (tile_size + margin_size) + margin_size)
-            for y in range(self.rows) for x in range(self.columns)}
 
+        self.tilespos = {(x, y): (x * (tile_size + margin_size) + margin_size,
+                                  y * (tile_size + margin_size) + margin_size)
+                        for y in range(self.rows) for x in range(self.columns)}
+
+        # purely for monkeyRunner, if i can make that work
         self.orb_pattern = []
         for i in range(self.size):
             self.orb_pattern.append(self.orbkey.get(self.board_pattern[i]))
-
-
-    def set_layout(self):
-        pass
-
-    def print_board(self):
-        for i in range(self.rows):
-            for j in range(self.columns):
-                print(self.board[i * self.columns + j], end=' ')
-            print("\n")
 
     # "Blank" - should be the orb you're holding
     def get_start_orb(self):
@@ -73,19 +68,23 @@ class Board:
     def update(self, dt):
         mouse = pygame.mouse.get_pressed()
         mpos = pygame.mouse.get_pos()
-
         if mouse[0]:
+            ##
             tile = mpos[0] // (self.tile_size+self.margin_size), mpos[1] // (self.tile_size+self.margin_size)
+
             if self.in_grid(tile):
-                if (tile in self.adjacent()):
+                if tile in self.adjacent():
                     self.swap(tile)
+                    self.moves.append(tile)
 
     def draw(self, screen):
 
         for i in range(self.size):
             x, y = self.tilespos[self.tiles[i]]
-            screen.blit(self.orb_pattern[i], (x - 8, y - 8))
+            screen.blit(self.orb_pattern[i], (x -self.margin_size, y - self.margin_size))
 
+    def print_moves(self):
+        print( self.moves)
 
 def generate_random_board():
     orbs = ['r', 'g', 'b', 'l', 'd', 'h']
@@ -98,6 +97,7 @@ x = ['g', 'r', 'l', 'g', 'r', 'h', 'g', 'r', 'r', 'l', 'l', 'r', 'd', 'g', 'g', 
 
 
 def main():
+    global x
     bg = pygame.image.load("bg.png")
 
     pygame.init()
@@ -105,7 +105,8 @@ def main():
     pygame.display.set_caption('Pazudora')
     screen = pygame.display.set_mode((720, 600))
     fpsclock = pygame.time.Clock()
-    program = Board((6, 5), 104, 16, x)
+    ##tile size and margin size should add up to 120
+    program = Board((6, 5), 118, 2, generate_random_board())
 
     while True:
         dt = fpsclock.tick() / 1000
@@ -114,8 +115,7 @@ def main():
         program.draw(screen)
         pygame.display.flip()
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: pygame.quit(); sys.exit()
+            if event.type == pygame.QUIT: program.print_moves();pygame.quit(); sys.exit()
         program.update(dt)
-
 
 main()
